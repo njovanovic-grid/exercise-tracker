@@ -3,7 +3,7 @@ function validatePostUserMiddleware(req, res, next) {
   if (!username || typeof username !== "string" || username.trim() === "") {
     return res
       .status(400)
-      .json({ error: "Username is required and must be a non-empty string" });
+      .json({ error: "`username` is required and must be a non-empty string" });
   }
   next();
 }
