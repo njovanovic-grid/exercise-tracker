@@ -7,6 +7,8 @@ const helmet = require("helmet");
 const usersRouter = require("./routes/user.router");
 const exerciseRouter = require("./routes/exercise.router");
 
+const errorHandlerMiddleware = require("./middlewares/error-handler.middleware");
+
 dotenv.config();
 
 const app = express();
@@ -25,12 +27,7 @@ app.get("/", (_req, res) => {
 app.use("/api/users/:_id", exerciseRouter);
 app.use("/api/users", usersRouter);
 
-app.use((err, req, res, next) => {
-  console.error(err);
-  res
-    .status(err.status || 500)
-    .json({ error: err.message || "Internal Server Error" });
-});
+app.use(errorHandlerMiddleware);
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
