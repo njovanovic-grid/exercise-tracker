@@ -7,7 +7,7 @@ function formatDateToYMD(date) {
 exports.addExercise = (req, res, next) => {
   const { _id } = req.params;
   const { description, duration, date } = req.body;
-  const { user } = res.locals;
+  const { user } = req;
 
   const exerciseDate = date
     ? formatDateToYMD(new Date(date))

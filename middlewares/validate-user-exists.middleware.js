@@ -9,7 +9,7 @@ function validateUserExistsMiddleware(req, res, next) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.locals.user = user;
+    req.user = user;
     next();
   } catch (err) {
     next(err);
