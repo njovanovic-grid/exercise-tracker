@@ -1,17 +1,13 @@
 const db = require("../db/database-connection");
 
 exports.postUser = (req, res, next) => {
-  const { username } = req.body;
-
-  if (!username) {
-    return res.status(400).json({ error: "Username is required" });
-  }
+  const username = req.body.username.trim();
 
   try {
-    const stmt = db.prepare("INSERT INTO users (username) VALUES (?)");
-    const info = stmt.run(username);
+    const query = db.prepare("INSERT INTO users (username) VALUES (?)");
+    const user = query.run(username);
 
-    res.json({ id: info.lastInsertRowid, username });
+    res.json({ id: user.lastInsertRowid, username });
   } catch (err) {
     if (err.message.includes("UNIQUE")) {
       return res.status(400).json({ error: "Username already exists" });
@@ -22,8 +18,8 @@ exports.postUser = (req, res, next) => {
 
 exports.getUsers = (_req, res, next) => {
   try {
-    const stmt = db.prepare("SELECT id, username FROM users");
-    const users = stmt.all();
+    const query = db.prepare("SELECT id, username FROM users");
+    const users = query.all();
 
     res.json(users);
   } catch (err) {

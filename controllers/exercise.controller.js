@@ -1,36 +1,29 @@
 const db = require("../db/database-connection");
 
+function formatDateToYMD(date) {
+  return date.toISOString().split("T")[0];
+}
+
 exports.addExercise = (req, res, next) => {
   const { _id } = req.params;
   const { description, duration, date } = req.body;
-
-  if (!description || !duration) {
-    return res
-      .status(400)
-      .json({ error: "Description and duration are required" });
-  }
+  const { user } = res.locals;
 
   const exerciseDate = date
-    ? new Date(date).toISOString().split("T")[0]
-    : new Date().toISOString().split("T")[0];
+    ? formatDateToYMD(new Date(date))
+    : formatDateToYMD(new Date());
 
   try {
-    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(_id);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const stmt = db.prepare(
+    const query = db.prepare(
       "INSERT INTO exercises (userId, description, duration, date) VALUES (?, ?, ?, ?)"
     );
-    const info = stmt.run(_id, description, duration, exerciseDate);
+    const exercise = query.run(_id, description, duration, exerciseDate);
 
     res.json({
       userId: user.id,
-      exerciseId: info.lastInsertRowid,
+      exerciseId: exercise.lastInsertRowid,
       description,
-      duration: parseInt(duration),
+      duration,
       date: exerciseDate,
     });
   } catch (err) {
@@ -43,12 +36,6 @@ exports.getLogs = (req, res, next) => {
   const { from, to, limit } = req.query;
 
   try {
-    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(_id);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
     let query = "SELECT * FROM exercises WHERE userId = ?";
     const params = [_id];
 
@@ -56,6 +43,7 @@ exports.getLogs = (req, res, next) => {
       query += " AND date >= ?";
       params.push(from);
     }
+
     if (to) {
       query += " AND date <= ?";
       params.push(to);
@@ -64,21 +52,19 @@ exports.getLogs = (req, res, next) => {
     query += " ORDER BY date ASC";
 
     if (limit) {
-      const limitNum = parseInt(limit, 10);
-      if (!isNaN(limitNum)) {
-        query += " LIMIT ?";
-        params.push(limitNum);
-      }
+      query += " LIMIT ?";
+      params.push(limit);
     }
 
-    const logs = db.prepare(query).all(...params);
-    const totalCount = db
-      .prepare("SELECT COUNT(*) as count FROM exercises WHERE userId = ?")
-      .get(_id).count;
+    const exerciseLogs = db.prepare(query).all(...params);
+
+    const countQuery =
+      "SELECT COUNT(*) as count FROM exercises WHERE userId = ?";
+    const totalCount = db.prepare(countQuery).get(_id).count;
 
     res.json({
       count: totalCount,
-      logs: logs.map((exercise) => ({
+      logs: exerciseLogs.map((exercise) => ({
         id: exercise.id,
         description: exercise.description,
         duration: exercise.duration,
