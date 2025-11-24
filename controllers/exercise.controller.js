@@ -14,10 +14,11 @@ exports.addExercise = (req, res, next) => {
     : formatDateToYMD(new Date());
 
   try {
-    const query = db.prepare(
-      "INSERT INTO exercises (userId, description, duration, date) VALUES (?, ?, ?, ?)"
-    );
-    const exercise = query.run(_id, description, duration, exerciseDate);
+    const query =
+      "INSERT INTO exercises (userId, description, duration, date) VALUES (?, ?, ?, ?)";
+    const exercise = db
+      .prepare(query)
+      .run(_id, description, duration, exerciseDate);
 
     res.json({
       userId: user.id,

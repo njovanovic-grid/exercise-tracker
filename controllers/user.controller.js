@@ -4,8 +4,8 @@ exports.postUser = (req, res, next) => {
   const username = req.body.username.trim();
 
   try {
-    const query = db.prepare("INSERT INTO users (username) VALUES (?)");
-    const user = query.run(username);
+    const query = "INSERT INTO users (username) VALUES (?)";
+    const user = db.prepare(query).run(username);
 
     res.json({ id: user.lastInsertRowid, username });
   } catch (err) {
@@ -18,8 +18,8 @@ exports.postUser = (req, res, next) => {
 
 exports.getUsers = (_req, res, next) => {
   try {
-    const query = db.prepare("SELECT id, username FROM users");
-    const users = query.all();
+    const query = "SELECT id, username FROM users";
+    const users = db.prepare(query).all();
 
     res.json(users);
   } catch (err) {
