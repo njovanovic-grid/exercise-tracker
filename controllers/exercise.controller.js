@@ -37,7 +37,8 @@ exports.getLogs = (req, res, next) => {
   const { from, to, limit } = req.query;
 
   try {
-    let query = "SELECT * FROM exercises WHERE userId = ?";
+    let query =
+      "SELECT id, description, duration, date FROM exercises WHERE userId = ?";
     const params = [_id];
 
     if (from) {
@@ -65,12 +66,7 @@ exports.getLogs = (req, res, next) => {
 
     res.json({
       count: totalCount,
-      logs: exerciseLogs.map((exercise) => ({
-        id: exercise.id,
-        description: exercise.description,
-        duration: exercise.duration,
-        date: exercise.date,
-      })),
+      logs: exerciseLogs,
     });
   } catch (err) {
     next(err);
