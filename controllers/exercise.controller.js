@@ -37,32 +37,33 @@ exports.getLogs = (req, res, next) => {
   const { from, to, limit } = req.query;
 
   try {
-    let query =
-      "SELECT id, description, duration, date FROM exercises WHERE userId = ?";
     const params = [_id];
 
+    let filterQuery = " WHERE userId = ?";
+
     if (from) {
-      query += " AND date >= ?";
+      filterQuery += " AND date >= ?";
       params.push(from);
     }
 
     if (to) {
-      query += " AND date <= ?";
+      filterQuery += " AND date <= ?";
       params.push(to);
     }
 
-    query += " ORDER BY date ASC";
+    let countQuery = "SELECT COUNT(*) as count FROM exercises" + filterQuery;
+    const totalCount = db.prepare(countQuery).get(...params).count;
+
+    filterQuery += " ORDER BY date ASC";
 
     if (limit) {
-      query += " LIMIT ?";
+      filterQuery += " LIMIT ?";
       params.push(limit);
     }
 
+    let query =
+      "SELECT id, description, duration, date FROM exercises" + filterQuery;
     const exerciseLogs = db.prepare(query).all(...params);
-
-    const countQuery =
-      "SELECT COUNT(*) as count FROM exercises WHERE userId = ?";
-    const totalCount = db.prepare(countQuery).get(_id).count;
 
     res.json({
       count: totalCount,
